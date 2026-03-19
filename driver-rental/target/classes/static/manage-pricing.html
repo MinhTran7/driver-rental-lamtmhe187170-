@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Pricing Rules</title>
+</head>
+<body>
+
+<h1>Manage Pricing Rules</h1>
+
+<h2>Add / Update Pricing Rule</h2>
+
+<input type="hidden" id="pricingId">
+
+<input id="ruleName" placeholder="Rule Name"><br><br>
+<input id="description" placeholder="Description"><br><br>
+<input id="basePrice" type="number" placeholder="Base Price"><br><br>
+<input id="pricePerKm" type="number" placeholder="Price Per Km"><br><br>
+<input id="pricePerHour" type="number" placeholder="Price Per Hour"><br><br>
+
+<label>
+  <input type="checkbox" id="active" checked> Active
+</label><br><br>
+
+<button onclick="savePricingRule()">Save</button>
+
+<p id="result"></p>
+
+<hr>
+
+<h2>Pricing Rule List</h2>
+<table border="1" cellpadding="8">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Rule Name</th>
+    <th>Description</th>
+    <th>Base Price</th>
+    <th>Price / Km</th>
+    <th>Price / Hour</th>
+    <th>Active</th>
+    <th>Action</th>
+  </tr>
+  </thead>
+  <tbody id="pricingTableBody"></tbody>
+</table>
+
+<script>
+  function loadPricingRules() {
+    fetch("http://localhost:8080/api/pricing-rules")
+            .then(res => res.json())
+            .then(data => {
+              const body = document.getElementById("pricingTableBody");
+              body.innerHTML = "";
+
+              if (data.length === 0) {
+                body.innerHTML = "<tr><td colspan='8'>No pricing rules</td></tr>";
+                return;
+              }
+
+              data.forEach(rule => {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                        <td>${rule.id}</td>
+                        <td>${rule.ruleName}</td>
+                        <td>${rule.description ?? ""}</td>
+                        <td>${rule.basePrice ?? ""}</td>
+                        <td>${rule.pricePerKm ?? ""}</td>
+                        <td>${rule.pricePerHour ?? ""}</td>
+                        <td>${rule.active}</td>
+                        <td>
+                            <button onclick="editPricingRule(${rule.id}, '${escapeText(rule.ruleName)}', '${escapeText(rule.description)}', ${rule.basePrice ?? 0}, ${rule.pricePerKm ?? 0}, ${rule.pricePerHour ?? 0}, ${rule.active})">
+                                Edit
+                            </button>
+                        </td>
+                    `;
+
+                body.appendChild(row);
+              });
+            });
+  }
+
+  function savePricingRule() {
+    const id = document.getElementById("pricingId").value;
+
+    const data = {
+      ruleName: document.getElementById("ruleName").value,
+      description: document.getElementById("description").value,
+      basePrice: parseFloat(document.getElementById("basePrice").value) || 0,
+      pricePerKm: parseFloat(document.getElementById("pricePerKm").value) || 0,
+      pricePerHour: parseFloat(document.getElementById("pricePerHour").value) || 0,
+      active: document.getElementById("active").checked
+    };
+
+    let url = "http://localhost:8080/api/pricing-rules";
+    let method = "POST";
+
+    if (id) {
+      url = "http://localhost:8080/api/pricing-rules/" + id;
+      method = "PUT";
+    }
+
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById("result").innerText = "Saved successfully";
+              clearForm();
+              loadPricingRules();
+            })
+            .catch(err => {
+              document.getElementById("result").innerText = "Error: " + err;
+            });
+  }
+
+  function editPricingRule(id, ruleName, description, basePrice, pricePerKm, pricePerHour, active) {
+    document.getElementById("pricingId").value = id;
+    document.getElementById("ruleName").value = ruleName;
+    document.getElementById("description").value = description;
+    document.getElementById("basePrice").value = basePrice;
+    document.getElementById("pricePerKm").value = pricePerKm;
+    document.getElementById("pricePerHour").value = pricePerHour;
+    document.getElementById("active").checked = active;
+  }
+
+  function clearForm() {
+    document.getElementById("pricingId").value = "";
+    document.getElementById("ruleName").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("basePrice").value = "";
+    document.getElementById("pricePerKm").value = "";
+    document.getElementById("pricePerHour").value = "";
+    document.getElementById("active").checked = true;
+  }
+
+  function escapeText(text) {
+    if (!text) return "";
+    return text.replace(/'/g, "\\'");
+  }
+
+  loadPricingRules();
+</script>
+
+</body>
+</html>

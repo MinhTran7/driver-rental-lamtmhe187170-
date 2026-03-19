@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Update Profile</h1>
+
+<input id="name" placeholder="Name"><br><br>
+<input id="phone" placeholder="Phone"><br><br>
+<input id="address" placeholder="Address"><br><br>
+
+<button onclick="update()">Update</button>
+
+<p id="result"></p>
+
+<script>
+    function update() {
+        const email = localStorage.getItem("email");
+
+        const data = {
+            email: email,
+            fullName: document.getElementById("name").value,
+            phone: document.getElementById("phone").value,
+            address: document.getElementById("address").value
+        };
+
+        fetch("http://localhost:8080/api/auth/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById("result").innerText = data;
+            });
+    }
+</script>
+
+</body>
+</html>

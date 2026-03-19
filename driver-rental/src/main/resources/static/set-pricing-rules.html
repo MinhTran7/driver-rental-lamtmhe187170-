@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Pricing Rules</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        h1, h2 {
+            margin-bottom: 15px;
+        }
+
+        input, textarea {
+            display: block;
+            width: 300px;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #999;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .action-btn {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Set Pricing Rules (Admin)</h1>
+
+<h2>Create / Update Pricing Rule</h2>
+
+<input type="hidden" id="ruleId">
+
+<input type="text" id="ruleName" placeholder="Rule Name">
+<textarea id="description" placeholder="Description"></textarea>
+<input type="number" id="basePrice" placeholder="Base Price">
+<input type="number" id="pricePerKm" placeholder="Price Per Km">
+<input type="number" id="pricePerHour" placeholder="Price Per Hour">
+
+<label>
+    <input type="checkbox" id="active" checked>
+    Active
+</label>
+
+<button onclick="savePricingRule()">Save Pricing Rule</button>
+<button onclick="resetForm()">Clear</button>
+
+<h2>Pricing Rule List</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Rule Name</th>
+        <th>Description</th>
+        <th>Base Price</th>
+        <th>Price/Km</th>
+        <th>Price/Hour</th>
+        <th>Active</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody id="pricingRuleTableBody"></tbody>
+</table>
+
+<script>
+    async function loadPricingRules() {
+        const response = await fetch('/api/pricing-rules');
+        const rules = await response.json();
+
+        const tableBody = document.getElementById('pricingRuleTableBody');
+        tableBody.innerHTML = '';
+
+        rules.forEach(rule => {
+            const row = `
+                <tr>
+                    <td>${rule.id}</td>
+                    <td>${rule.ruleName || ''}</td>
+                    <td>${rule.description || ''}</td>
+                    <td>${rule.basePrice ?? 0}</td>
+                    <td>${rule.pricePerKm ?? 0}</td>
+                    <td>${rule.pricePerHour ?? 0}</td>
+                    <td>${rule.active}</td>
+                    <td>
+                        <button class="action-btn" onclick='editRule(${JSON.stringify(rule)})'>Edit</button>
+                        <button class="action-btn" onclick='deleteRule(${rule.id})'>Delete</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    async function savePricingRule() {
+        const id = document.getElementById('ruleId').value;
+
+        const pricingRule = {
+            ruleName: document.getElementById('ruleName').value,
+            description: document.getElementById('description').value,
+            basePrice: parseFloat(document.getElementById('basePrice').value) || 0,
+            pricePerKm: parseFloat(document.getElementById('pricePerKm').value) || 0,
+            pricePerHour: parseFloat(document.getElementById('pricePerHour').value) || 0,
+            active: document.getElementById('active').checked
+        };
+
+        let url = '/api/pricing-rules';
+        let method = 'POST';
+
+        if (id) {
+            url = `/api/pricing-rules/${id}`;
+            method = 'PUT';
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(pricingRule)
+        });
+
+        if (response.ok) {
+            alert(id ? 'Update pricing rule successfully' : 'Create pricing rule successfully');
+            resetForm();
+            loadPricingRules();
+        } else {
+            alert('Save pricing rule failed');
+        }
+    }
+
+    function editRule(rule) {
+        document.getElementById('ruleId').value = rule.id;
+        document.getElementById('ruleName').value = rule.ruleName || '';
+        document.getElementById('description').value = rule.description || '';
+        document.getElementById('basePrice').value = rule.basePrice ?? 0;
+        document.getElementById('pricePerKm').value = rule.pricePerKm ?? 0;
+        document.getElementById('pricePerHour').value = rule.pricePerHour ?? 0;
+        document.getElementById('active').checked = rule.active;
+    }
+
+    async function deleteRule(id) {
+        if (!confirm('Are you sure you want to delete this pricing rule?')) {
+            return;
+        }
+
+        const response = await fetch(`/api/pricing-rules/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert('Delete pricing rule successfully');
+            loadPricingRules();
+        } else {
+            alert('Delete pricing rule failed');
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('ruleId').value = '';
+        document.getElementById('ruleName').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('basePrice').value = '';
+        document.getElementById('pricePerKm').value = '';
+        document.getElementById('pricePerHour').value = '';
+        document.getElementById('active').checked = true;
+    }
+
+    loadPricingRules();
+</script>
+
+</body>
+</html>

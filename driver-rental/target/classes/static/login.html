@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+
+<h1>Login</h1>
+
+<input type="email" id="email" placeholder="Email"><br><br>
+<input type="password" id="password" placeholder="Password"><br><br>
+<a href="/forgot-password.html">forget password?</a>
+
+<button onclick="login()">Login</button>
+
+<p id="result"></p>
+
+<script>
+    function login() {
+        const data = {
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value
+        };
+
+        fetch("http://localhost:8080/api/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+            .then(res => res.text())
+            .then(data => {
+                if (data.includes("Login success")) {
+
+                    // 🔥 THÊM DÒNG NÀY (QUAN TRỌNG NHẤT)
+                    localStorage.setItem("email", document.getElementById("email").value);
+
+                    window.location.href = "/dashboard.html";
+                } else {
+                    document.getElementById("result").innerText = data;
+                }
+            })
+            .catch(err => {
+                document.getElementById("result").innerText = "Error: " + err;
+            });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promotions</title>
+</head>
+<body>
+<h1>Promotion Management</h1>
+
+<button onclick="loadPromotions()">Load Promotions</button>
+
+<table border="1" cellpadding="10">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Code</th>
+    <th>Title</th>
+    <th>Description</th>
+    <th>Discount</th>
+    <th>Start Date</th>
+    <th>End Date</th>
+    <th>Active</th>
+  </tr>
+  </thead>
+  <tbody id="promotionTableBody"></tbody>
+</table>
+
+<script>
+  async function loadPromotions() {
+    const response = await fetch('/api/promotions');
+    const promotions = await response.json();
+
+    const tableBody = document.getElementById('promotionTableBody');
+    tableBody.innerHTML = '';
+
+    promotions.forEach(promotion => {
+      const row = `
+                    <tr>
+                        <td>${promotion.id}</td>
+                        <td>${promotion.code}</td>
+                        <td>${promotion.title || ''}</td>
+                        <td>${promotion.description || ''}</td>
+                        <td>${promotion.discountPercent}%</td>
+                        <td>${promotion.startDate}</td>
+                        <td>${promotion.endDate}</td>
+                        <td>${promotion.active}</td>
+                    </tr>
+                `;
+      tableBody.innerHTML += row;
+    });
+  }
+
+  loadPromotions();
+</script>
+</body>
+</html>

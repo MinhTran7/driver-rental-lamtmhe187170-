@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Notifications</h1>
+
+<ul id="list"></ul>
+
+<script>
+    const email = localStorage.getItem("email");
+
+    if (!email) {
+        document.body.innerHTML = "Chưa login!";
+    } else {
+        fetch("http://localhost:8080/api/auth/notifications?email=" + email)
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById("list");
+
+                if (data.length === 0) {
+                    list.innerHTML = "<li>Không có thông báo</li>";
+                    return;
+                }
+
+                data.forEach(n => {
+                    const li = document.createElement("li");
+
+                    li.innerText =
+                        n.title + " - " +
+                        n.message + " (" +
+                        n.createdAt + ")";
+
+                    list.appendChild(li);
+                });
+            });
+    }
+</script>
+
+</body>
+</html>

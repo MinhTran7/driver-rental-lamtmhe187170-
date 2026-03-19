@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>My Profile</h1>
+
+<p id="info"></p>
+
+<script>
+    const email = localStorage.getItem("email");
+
+    fetch("http://localhost:8080/api/auth/profile?email=" + email)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("info").innerText =
+                "Name: " + data.fullName +
+                "\nEmail: " + data.email +
+                "\nPhone: " + data.phone;
+        });
+</script>
+
+</body>
+</html>
